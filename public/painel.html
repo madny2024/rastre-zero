@@ -33,7 +33,6 @@
       favicon.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='${color}'/></svg>`;
     }
 
-    // bateria
     navigator.getBattery().then(bat=>{
       function updateBat(){
         document.getElementById("batVal").textContent = Math.round(bat.level*100);
@@ -44,13 +43,12 @@
       bat.addEventListener('chargingchange',updateBat);
     });
 
-    // histórico
     const histKey = 'hist_'+id;
     let hist = JSON.parse(localStorage.getItem(histKey)||'[]');
     const histList = document.getElementById('histList');
     function renderHist(){
       histList.innerHTML='';
-      hist.slice(-20).reverse().forEach((p,i)=>{
+      hist.slice(-20).reverse().forEach(p=>{
         const div=document.createElement('div');
         div.textContent=new Date(p.t).toLocaleTimeString('pt-BR')+' '+p.lat.toFixed(5)+','+p.lng.toFixed(5);
         div.onclick=()=>window.mapInstance.panTo([p.lat,p.lng]);
@@ -63,7 +61,6 @@
       renderHist();
     }
 
-    // mapa
     if (!navigator.geolocation) {
       alert("Geolocalização indisponível");
     } else {
