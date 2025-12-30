@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <title>Painel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#map{height:100%}
+    #idBox{position:absolute;top:10px;left:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font-family:sans-serif;font-size:14px}
+  </style>
+</head>
+<body>
+  <div id="idBox">ID: <span id="idShow">demo1</span></div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id") || "demo1";
+    document.getElementById("idShow").textContent = id;
+
+    if (!navigator.geolocation) {
+      alert("Geolocalização indisponível");
+    } else {
+      navigator.geolocation.watchPosition(
+        pos => {
+          const {latitude: lat, longitude: lng} = pos.coords;
+          if (!window.mapInstance) {
+            window.mapInstance = L.map("map").setView([lat, lng], 17);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              attribution: "&copy; OSM"
+            }).addTo(window.mapInstance);
+            window.marker = L.marker([lat, lng]).addTo(window.mapInstance);
+          } else {
+            window.marker.setLatLng([lat, lng]);
+            window.mapInstance.panTo([lat, lng]);
+          }
+        },
+        err => console.warn(err),
+        {enableHighAccuracy: true, timeout: 10000, maximumAge: 5000}
+      );
+    }
+  </script>
+</body>
+</html>
