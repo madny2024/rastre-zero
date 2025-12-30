@@ -2,25 +2,42 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"/>
-  <title>Painel</title>
+  <title>Painel • RastreZero</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
+    :root{
+      --bg:#111;
+      --card:#1a1a1a;
+      --text:#eee;
+      --accent:#34b7f1;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body,#map{height:100%}
-    #idBox{position:absolute;top:10px;left:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font:14px sans-serif}
-    #batBox{position:absolute;top:10px;right:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font:14px sans-serif}
-    #histBox{position:absolute;bottom:10px;left:10px;max-width:220px;max-height:40vh;overflow:auto;z-index:1000;background:#fff;padding:6px;border-radius:4px;font:12px sans-serif}
-    #histBox div{margin:2px 0;cursor:pointer}
-    #histBox div:hover{background:#eee}
+    html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+    #map{position:absolute;top:0;left:0;width:100%;height:100%}
+    .hud{
+      position:absolute;
+      background:var(--card);
+      padding:8px 12px;
+      border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,.4);
+      z-index:1000;
+    }
+    #idBox{top:12px;left:12px}
+    #batBox{top:12px;right:12px}
+    #histBox{bottom:12px;left:12px;max-width:240px;max-height:35vh;overflow:auto;font-size:12px}
+    #histBox b{display:block;margin-bottom:4px}
+    #histBox div{padding:3px 6px;border-radius:4px;cursor:pointer}
+    #histBox div:hover{background:#ffffff22}
   </style>
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2334b7f1'/></svg>">
 </head>
 <body>
-  <div id="idBox">ID: <span id="idShow">demo1</span></div>
-  <div id="batBox"><span id="batVal">--</span>% <span id="chg">🔋</span></div>
   <div id="map"></div>
-  <div id="histBox"><b>Histórico</b><div id="histList"></div></div>
+
+  <div id="idBox" class="hud">ID <span id="idShow">demo1</span></div>
+  <div id="batBox" class="hud"><span id="batVal">--</span>% <span id="chg">🔋</span></div>
+  <div id="histBox" class="hud"><b>Histórico</b><div id="histList"></div></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -71,11 +88,16 @@
           setTimeout(()=>setFav('#ffffff'),800);
           addPos(lat,lng);
           if (!window.mapInstance) {
-            window.mapInstance = L.map("map").setView([lat, lng], 17);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-              attribution: "&copy; OSM"
+            window.mapInstance = L.map("map",{zoomControl:false,attributionControl:false}).setView([lat, lng], 17);
+            L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+              attribution:''
             }).addTo(window.mapInstance);
-            window.marker = L.marker([lat, lng]).addTo(window.mapInstance);
+            window.marker = L.marker([lat, lng],{
+              icon: L.divIcon({
+                html:`<div style="width:16px;height:16px;background:#34b7f1;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px #34b7f1"></div>`,
+                iconSize:[16,16],iconAnchor:[8,8]
+              })
+            }).addTo(window.mapInstance);
           } else {
             window.marker.setLatLng([lat, lng]);
             window.mapInstance.panTo([lat, lng]);
