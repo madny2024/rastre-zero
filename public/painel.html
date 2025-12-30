@@ -8,8 +8,11 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body,#map{height:100%}
-    #idBox{position:absolute;top:10px;left:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font-family:sans-serif;font-size:14px}
+    #idBox{position:absolute;top:10px;left:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font:14px sans-serif}
     #batBox{position:absolute;top:10px;right:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font:14px sans-serif}
+    #histBox{position:absolute;bottom:10px;left:10px;max-width:220px;max-height:40vh;overflow:auto;z-index:1000;background:#fff;padding:6px;border-radius:4px;font:12px sans-serif}
+    #histBox div{margin:2px 0;cursor:pointer}
+    #histBox div:hover{background:#eee}
   </style>
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2334b7f1'/></svg>">
 </head>
@@ -17,6 +20,7 @@
   <div id="idBox">ID: <span id="idShow">demo1</span></div>
   <div id="batBox"><span id="batVal">--</span>% <span id="chg">🔋</span></div>
   <div id="map"></div>
+  <div id="histBox"><b>Histórico</b><div id="histList"></div></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -40,6 +44,25 @@
       bat.addEventListener('chargingchange',updateBat);
     });
 
+    // histórico
+    const histKey = 'hist_'+id;
+    let hist = JSON.parse(localStorage.getItem(histKey)||'[]');
+    const histList = document.getElementById('histList');
+    function renderHist(){
+      histList.innerHTML='';
+      hist.slice(-20).reverse().forEach((p,i)=>{
+        const div=document.createElement('div');
+        div.textContent=new Date(p.t).toLocaleTimeString('pt-BR')+' '+p.lat.toFixed(5)+','+p.lng.toFixed(5);
+        div.onclick=()=>window.mapInstance.panTo([p.lat,p.lng]);
+        histList.appendChild(div);
+      });
+    }
+    function addPos(lat,lng){
+      hist.push({lat,lng,t:Date.now()});
+      localStorage.setItem(histKey,JSON.stringify(hist));
+      renderHist();
+    }
+
     // mapa
     if (!navigator.geolocation) {
       alert("Geolocalização indisponível");
@@ -49,6 +72,7 @@
           const {latitude: lat, longitude: lng} = pos.coords;
           setFav('#34b7f1');
           setTimeout(()=>setFav('#ffffff'),800);
+          addPos(lat,lng);
           if (!window.mapInstance) {
             window.mapInstance = L.map("map").setView([lat, lng], 17);
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
