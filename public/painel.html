@@ -10,6 +10,8 @@
     html,body,#map{height:100%}
     #idBox{position:absolute;top:10px;left:10px;z-index:1000;background:#fff;padding:6px 10px;border-radius:4px;font-family:sans-serif;font-size:14px}
   </style>
+  <!-- favicon dinâmico -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2334b7f1'/></svg>">
 </head>
 <body>
   <div id="idBox">ID: <span id="idShow">demo1</span></div>
@@ -21,12 +23,19 @@
     const id = params.get("id") || "demo1";
     document.getElementById("idShow").textContent = id;
 
+    const favicon = document.getElementById("favicon");
+    function setFav(color){
+      favicon.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='${color}'/></svg>`;
+    }
+
     if (!navigator.geolocation) {
       alert("Geolocalização indisponível");
     } else {
       navigator.geolocation.watchPosition(
         pos => {
           const {latitude: lat, longitude: lng} = pos.coords;
+          setFav('#34b7f1');                  // azul ao atualizar
+          setTimeout(()=>setFav('#ffffff'),800); // branco depois
           if (!window.mapInstance) {
             window.mapInstance = L.map("map").setView([lat, lng], 17);
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
