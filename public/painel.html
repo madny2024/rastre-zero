@@ -1,43 +1,97 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>Painel • RastreZero</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    :root{
-      --bg:#111;
-      --card:#1a1a1a;
-      --text:#eee;
-      --accent:#34b7f1;
+    :root {
+      --bg: #111;
+      --card: #1a1a1a;
+      --text: #eee;
+      --accent: #34b7f1;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-    #map{position:absolute;top:0;left:0;width:100%;height:100%}
-    .hud{
-      position:absolute;
-      background:var(--card);
-      padding:8px 12px;
-      border-radius:8px;
-      box-shadow:0 4px 12px rgba(0,0,0,.4);
-      z-index:1000;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
     }
-    #idBox{top:12px;left:12px}
-    #batBox{top:12px;right:12px}
-    #histBox{bottom:12px;left:12px;max-width:240px;max-height:35vh;overflow:auto;font-size:12px}
-    #histBox b{display:block;margin-bottom:4px}
-    #histBox div{padding:3px 6px;border-radius:4px;cursor:pointer}
-    #histBox div:hover{background:#ffffff22}
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%
+    }
+
+    .hud {
+      position: absolute;
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
+      z-index: 1000;
+    }
+
+    #idBox {
+      top: 12px;
+      left: 12px
+    }
+
+    #batBox {
+      top: 12px;
+      right: 12px
+    }
+
+    #histBox {
+      bottom: 12px;
+      left: 12px;
+      max-width: 240px;
+      max-height: 35vh;
+      overflow: auto;
+      font-size: 12px
+    }
+
+    #histBox b {
+      display: block;
+      margin-bottom: 4px
+    }
+
+    #histBox div {
+      padding: 3px 6px;
+      border-radius: 4px;
+      cursor: pointer
+    }
+
+    #histBox div:hover {
+      background: #ffffff22
+    }
   </style>
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2334b7f1'/></svg>">
+  <link id="favicon" rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2334b7f1'/></svg>">
 </head>
+
 <body>
   <div id="map"></div>
 
   <div id="idBox" class="hud">ID <span id="idShow">demo1</span></div>
   <div id="batBox" class="hud"><span id="batVal">--</span>% <span id="chg">🔋</span></div>
-  <div id="histBox" class="hud"><b>Histórico</b><div id="histList"></div></div>
+  <div id="histBox" class="hud"><b>Histórico</b>
+    <div id="histList"></div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -46,35 +100,35 @@
     document.getElementById("idShow").textContent = id;
 
     const favicon = document.getElementById("favicon");
-    function setFav(color){
+    function setFav(color) {
       favicon.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='${color}'/></svg>`;
     }
 
-    navigator.getBattery().then(bat=>{
-      function updateBat(){
-        document.getElementById("batVal").textContent = Math.round(bat.level*100);
+    navigator.getBattery().then(bat => {
+      function updateBat() {
+        document.getElementById("batVal").textContent = Math.round(bat.level * 100);
         document.getElementById("chg").textContent = bat.charging ? "🔌" : "🔋";
       }
       updateBat();
-      bat.addEventListener('levelchange',updateBat);
-      bat.addEventListener('chargingchange',updateBat);
+      bat.addEventListener('levelchange', updateBat);
+      bat.addEventListener('chargingchange', updateBat);
     });
 
-    const histKey = 'hist_'+id;
-    let hist = JSON.parse(localStorage.getItem(histKey)||'[]');
+    const histKey = 'hist_' + id;
+    let hist = JSON.parse(localStorage.getItem(histKey) || '[]');
     const histList = document.getElementById('histList');
-    function renderHist(){
-      histList.innerHTML='';
-      hist.slice(-20).reverse().forEach(p=>{
-        const div=document.createElement('div');
-        div.textContent=new Date(p.t).toLocaleTimeString('pt-BR')+' '+p.lat.toFixed(5)+','+p.lng.toFixed(5);
-        div.onclick=()=>window.mapInstance.panTo([p.lat,p.lng]);
+    function renderHist() {
+      histList.innerHTML = '';
+      hist.slice(-20).reverse().forEach(p => {
+        const div = document.createElement('div');
+        div.textContent = new Date(p.t).toLocaleTimeString('pt-BR') + ' ' + p.lat.toFixed(5) + ',' + p.lng.toFixed(5);
+        div.onclick = () => window.mapInstance.panTo([p.lat, p.lng]);
         histList.appendChild(div);
       });
     }
-    function addPos(lat,lng){
-      hist.push({lat,lng,t:Date.now()});
-      localStorage.setItem(histKey,JSON.stringify(hist));
+    function addPos(lat, lng) {
+      hist.push({ lat, lng, t: Date.now() });
+      localStorage.setItem(histKey, JSON.stringify(hist));
       renderHist();
     }
 
@@ -83,19 +137,19 @@
     } else {
       navigator.geolocation.watchPosition(
         pos => {
-          const {latitude: lat, longitude: lng} = pos.coords;
+          const { latitude: lat, longitude: lng } = pos.coords;
           setFav('#34b7f1');
-          setTimeout(()=>setFav('#ffffff'),800);
-          addPos(lat,lng);
+          setTimeout(() => setFav('#ffffff'), 800);
+          addPos(lat, lng);
           if (!window.mapInstance) {
-            window.mapInstance = L.map("map",{zoomControl:false,attributionControl:false}).setView([lat, lng], 17);
+            window.mapInstance = L.map("map", { zoomControl: false, attributionControl: false }).setView([lat, lng], 17);
             L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-              attribution:''
+              attribution: ''
             }).addTo(window.mapInstance);
-            window.marker = L.marker([lat, lng],{
+            window.marker = L.marker([lat, lng], {
               icon: L.divIcon({
-                html:`<div style="width:16px;height:16px;background:#34b7f1;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px #34b7f1"></div>`,
-                iconSize:[16,16],iconAnchor:[8,8]
+                html: `<div style="width:16px;height:16px;background:#34b7f1;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px #34b7f1"></div>`,
+                iconSize: [16, 16], iconAnchor: [8, 8]
               })
             }).addTo(window.mapInstance);
           } else {
@@ -104,9 +158,25 @@
           }
         },
         err => console.warn(err),
-        {enableHighAccuracy: true, timeout: 10000, maximumAge: 5000}
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
       );
     }
+    // busca histórico a cada 3 s
+    async function fetchTrail() {
+      const r = await fetch('/api/trail?id=' + params.id);
+      const arr = await r.json();
+      // redesenha polyline completa
+      if (arr.length) {
+        const latlngs = arr.map(p => [p.lat, p.lng]);
+        if (window.trailPoly) map.removeLayer(window.trailPoly);
+        window.trailPoly = L.polyline(latlngs, { color: 'lime', weight: 4 }).addTo(map);
+        map.fitBounds(window.trailPoly.getBounds().pad(0.05));
+      }
+    }
+    setInterval(fetchTrail, 3000);
+    fetchTrail(); // primeira carga
   </script>
+
 </body>
+
 </html>
